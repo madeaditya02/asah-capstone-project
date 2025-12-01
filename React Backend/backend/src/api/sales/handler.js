@@ -1,111 +1,58 @@
-// src/api/sales/handler.js
-const SalesService = require('../../services/SalesService');
-const SalesValidator = require('../../validator/sales');
-const ClientError = require('../../exceptions/ClientError');
+const { default: autoBind } = require("auto-bind");
 
-const SalesHandler = {
-  
-  getAllSales: async (request, h) => {
-    try {
-      const result = await SalesService.getAllSales();
-      return h.response({
-        status: 'success',
-        data: result,
-      }).code(200);
-    } catch (error) {
-      console.error(error);
-      return h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      }).code(500);
-    }
-  },
+class SalesHandler {
+  constructor(service, validator) {
+    this.service = service;
+    this.validator = validator;
 
-  createSales: async (request, h) => {
-    try {
-      SalesValidator.validateCreatePayload(request.payload);
+    autoBind(this);
+  }
 
-      const result = await SalesService.createSales(request.payload);
-      return h.response({
-        status: 'success',
-        message: 'Sales berhasil dibuat',
-        data: result,
-      }).code(201);
+  async getAllSales() {
+    return {
+      status: "success",
+      data: {
+        catatan,
+      },
+    };
+  }
 
-    } catch (error) {
-      if (error instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: error.message,
-        }).code(error.statusCode);
-      }
+  async createSales(request, h) {
+    this.validator.validateCreatePayload(request.payload);
+    const result = await this.service.createSales(request.payload);
 
-      console.error(error);
-      return h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      }).code(500);
-    }
-  },
+    const response = h.response({
+      status: "success",
+      message: "Sales berhasil dibuat",
+      data: {
+        result,
+      },
+    });
+    response.code(201);
+    return response;
+  }
 
-  updateSales: async (request, h) => {
-    try {
-      SalesValidator.validateUpdatePayload(request.payload);
+  async updateSales(request) {
+    this.validator.validateUpdatePayload(request.payload);
 
-      const { id } = request.params;
+    const { id } = request.params;
+    await this.service.updateSales(id, request.payload);
 
-      const result = await SalesService.updateSales(id, request.payload);
+    return {
+      status: "success",
+      message: "Data sales berhasil diperbarui",
+    };
+  }
 
-      return h.response({
-        status: 'success',
-        message: 'Data sales berhasil diperbarui',
-        data: result,
-      }).code(200);
+  async deleteSales(request) {
+    const { id } = request.params;
+    await this.service.deleteSales(id);
 
-    } catch (error) {
-      if (error instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: error.message,
-        }).code(error.statusCode);
-      }
-
-      console.error(error);
-      return h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      }).code(500);
-    }
-  },
-
-  deleteSales: async (request, h) => {
-    try {
-      const { id } = request.params;
-
-      const result = await SalesService.deleteSales(id);
-
-      return h.response({
-        status: 'success',
-        message: 'Data sales berhasil dihapus',
-        data: result,
-      }).code(200);
-
-    } catch (error) {
-      if (error instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: error.message,
-        }).code(error.statusCode);
-      }
-
-      console.error(error);
-      return h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      }).code(500);
-    }
-  },
-
-};
+    return {
+      status: "success",
+      message: "Data sales berhasil dihapus",
+    };
+  }
+}
 
 module.exports = SalesHandler;

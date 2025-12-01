@@ -1,27 +1,27 @@
-const AuthHandler = require('./handler');
-
-module.exports = [
+const routes = (handler) => [
   {
-    method: 'POST',
-    path: '/auth/login',
-    handler: AuthHandler.login,
-    options: { auth: false }
+    method: "POST",
+    path: "/auth/login",
+    handler: handler.login,
+    options: { auth: false },
   },
   {
-    method: 'POST',
-    path: '/auth/logout',
-    handler: AuthHandler.logout,
+    method: "POST",
+    path: "/auth/logout",
+    handler: handler.logout,
   },
   {
-    method: 'POST',
-    path: '/auth/forgot-password',
-    handler: AuthHandler.forgotPassword,
-    options: { auth: false }
+    method: "POST",
+    path: "/auth/forgot-password",
+    handler: handler.forgotPassword,
+    options: { auth: false },
   },
   {
-    method: 'POST',
-    path: '/auth/reset-password',
-    handler: AuthHandler.resetPassword,
-    options: { auth: false }
+    method: "POST",
+    path: "/auth/reset-password",
+    handler: handler.resetPassword,
+    options: { auth: false },
   },
 ];
+
+module.exports = routes;

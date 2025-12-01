@@ -1,110 +1,58 @@
+const { default: autoBind } = require("auto-bind");
 
-const AuthService = require('../../services/AuthService');
-const AuthValidator = require('../../validator/auth');
-const ClientError = require('../../exceptions/ClientError');
+class AuthHandler {
+  constructor(service, validator) {
+    this.service = service;
+    this.validator = validator;
 
-const AuthHandler = {
-  login: async (request, h) => {
-    try {
-      AuthValidator.validateLoginPayload(request.payload);
+    autoBind(this);
+  }
 
-      const result = await AuthService.login(request.payload);
+  async login(request, h) {
+    this.validator.validateLoginPayload(request.payload);
+    const result = await this.service.login(request.payload);
 
-      const response = h.response({
-        status: 'success',
-        message: 'Login berhasil',
-        data: result,
-      });
-
-      return response.code(200);
-    } catch (error) {
-      if (error instanceof ClientError) {
-        const response = h.response({
-          status: 'fail',
-          message: error.message,
-        });
-        return response.code(error.statusCode);
-      }
-
-      console.error(error);
-      const response = h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      });
-      return response.code(500);
-    }
-  },
-
-  logout: async (request, h) => {
-    
     const response = h.response({
-      status: 'success',
-      message: 'Logout berhasil',
+      status: "success",
+      message: "Login berhasil",
+      data: {
+        result,
+      },
     });
-    return response.code(200);
-  },
+    return response;
+  };
 
-  forgotPassword: async (request, h) => {
-    try {
-      AuthValidator.validateForgotPasswordPayload(request.payload);
+  async logout(h) {
+    const response = h.response({
+      status: "success",
+      message: "Logout berhasil",
+    });
+    return response;
+  }
 
-      const result = await AuthService.forgotPassword(request.payload);
+  async forgotPassword(request, h) {
+    this.validator.validateForgotPasswordPayload(request.payload);
+    const result = await this.service.forgotPassword(request.payload);
 
-      const response = h.response({
-        status: 'success',
-        message: 'Tautan reset kata sandi berhasil dibuat',
-        data: result, 
-      });
+    const response = h.response({
+      status: "success",
+      message: "Tautan reset kata sandi berhasil dibuat",
+      data: result, 
+    });
+    return response;
+  };
 
-      return response.code(200);
-    } catch (error) {
-      if (error instanceof ClientError) {
-        const response = h.response({
-          status: 'fail',
-          message: error.message,
-        });
-        return response.code(error.statusCode);
-      }
+  async resetPassword(request, h) {
+    this.validator.validateResetPasswordPayload(request.payload);
+    const result = await this.service.resetPassword(request.payload);
 
-      console.error(error);
-      const response = h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      });
-      return response.code(500);
-    }
-  },
-
-  resetPassword: async (request, h) => {
-    try {
-      AuthValidator.validateResetPasswordPayload(request.payload);
-
-      const result = await AuthService.resetPassword(request.payload);
-
-      const response = h.response({
-        status: 'success',
-        message: 'Kata sandi berhasil diubah',
-        data: result,
-      });
-
-      return response.code(200);
-    } catch (error) {
-      if (error instanceof ClientError) {
-        const response = h.response({
-          status: 'fail',
-          message: error.message,
-        });
-        return response.code(error.statusCode);
-      }
-
-      console.error(error);
-      const response = h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      });
-      return response.code(500);
-    }
-  },
+     const response = h.response({
+      status: "success",
+      message: "Kata sandi berhasil diubah",
+      data: result, 
+    });
+    return response;
+  };
 };
 
 module.exports = AuthHandler;

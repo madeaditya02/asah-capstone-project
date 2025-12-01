@@ -1,25 +1,24 @@
-
-const SalesHandler = require('./handler');
-
-module.exports = [
+const routes = (handler) => [
   {
     method: 'GET',
     path: '/sales',
-    handler: SalesHandler.getAllSales,
+    handler: handler.getAllSales,
   },
   {
     method: 'POST',
     path: '/sales',
-    handler: SalesHandler.createSales,
+    handler: handler.createSales,
   },
   {
     method: 'PUT',
     path: '/sales/{id}',
-    handler: SalesHandler.updateSales,
+    handler: handler.updateSales,
   },
   {
     method: 'DELETE',
     path: '/sales/{id}',
-    handler: SalesHandler.deleteSales,
+    handler: handler.deleteSales,
   },
 ];
+
+module.exports = routes;
