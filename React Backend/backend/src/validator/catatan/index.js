@@ -1,5 +1,9 @@
 const InvariantError = require("../../exceptions/InvariantError");
-const { PostCatatanPayloadSchema, UpdateCatatanPayloadSchema, GetDeleteCatatanByIdPayloadSchema } = require("./schema");
+const {
+  PostCatatanPayloadSchema,
+  UpdateCatatanPayloadSchema,
+  GetDeleteCatatanByIdPayloadSchema,
+} = require("./schema");
 
 const CatatanValidator = {
   validatePostCatatanPayload: (payload) => {
@@ -17,7 +21,8 @@ const CatatanValidator = {
   },
 
   validateGetDeleteCatatanPayload: (payload) => {
-    const validationResult = GetDeleteCatatanByIdPayloadSchema.validate(payload);
+    const validationResult =
+      GetDeleteCatatanByIdPayloadSchema.validate(payload);
     if (validationResult.error) {
       throw new InvariantError(validationResult.error.message);
     }

@@ -1,11 +1,10 @@
-
 const {
   LoginPayloadSchema,
   ForgotPasswordPayloadSchema,
   ResetPasswordPayloadSchema,
-} = require('./schema');
+} = require("./schema");
 
-const InvariantError = require('../../exceptions/InvariantError');
+const InvariantError = require("../../exceptions/InvariantError");
 
 const AuthValidator = {
   validateLoginPayload: (payload) => {

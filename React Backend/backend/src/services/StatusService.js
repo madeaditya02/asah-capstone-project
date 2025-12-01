@@ -1,8 +1,11 @@
-const { pool } = require("../utils");
+const { pool } = require("../utils/index");
+const { default: autoBind } = require("auto-bind");
 
 class StatusService {
   constructor() {
     this.pool = pool;
+
+    autoBind(this);
   }
 
   async getAllStatus() {

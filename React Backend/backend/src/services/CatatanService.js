@@ -1,11 +1,14 @@
 const { nanoid } = require("nanoid");
 const NotFoundError = require("../exceptions/NotFoundError");
 const InvariantError = require("../exceptions/InvariantError");
-const { pool } = require("../utils");
+const { default: autoBind } = require("auto-bind");
+const { pool } = require("../utils/index");
 
 class CatatanService {
   constructor() {
     this.pool = pool;
+
+    autoBind(this);
   }
 
   async addCatatan({ deskripsi, waktuDihubungi, durasi, statusId }) {
@@ -24,7 +27,7 @@ class CatatanService {
     return id;
   }
 
-  async updateCatatanById(id, {deskripsi, durasi, statusId }) {
+  async updateCatatanById(id, { deskripsi, durasi, statusId }) {
     const query =
       "UPDATE catatan SET deskripsi_catatan = ?, durasi = ?, id_status = ? WHERE id_catatan =?";
     const values = [deskripsi, durasi, statusId, id];
@@ -39,8 +42,7 @@ class CatatanService {
   }
 
   async getAllCatatan() {
-    const query =
-      `SELECT catatan.id_catatan, catatan.waktu_dihubungi, catatan.durasi, status.id_status, status.nama_status FROM catatan JOIN status ON catatan.id_status = status.id_status`;
+    const query = `SELECT catatan.id_catatan, catatan.waktu_dihubungi, catatan.durasi, status.id_status, status.nama_status FROM catatan JOIN status ON catatan.id_status = status.id_status`;
     const [results] = await this.pool.query(query);
 
     return results;

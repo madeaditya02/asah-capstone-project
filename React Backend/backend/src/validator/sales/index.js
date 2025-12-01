@@ -1,13 +1,11 @@
-
 const {
   CreateSalesPayloadSchema,
   UpdateSalesPayloadSchema,
-} = require('./schema');
+} = require("./schema");
 
-const InvariantError = require('../../exceptions/InvariantError');
+const InvariantError = require("../../exceptions/InvariantError");
 
 const SalesValidator = {
-
   validateCreatePayload: (payload) => {
     const { error } = CreateSalesPayloadSchema.validate(payload);
     if (error) {

@@ -1,14 +1,25 @@
 require("dotenv").config();
-
 const Hapi = require("@hapi/hapi");
+const ClientError = require("./exceptions/ClientError");
+
+const auth = require("./api/auth");
+const AuthService = require("./services/AuthService");
+const AuthValidator = require("./validator/auth");
+
+const sales = require("./api/sales");
+const SalesService = require("./services/SalesService");
+const SalesValidator = require("./validator/sales");
+
 const CatatanService = require("./services/CatatanService");
 const catatan = require("./api/catatan");
 const CatatanValidator = require("./validator/catatan");
-const ClientError = require("./exceptions/ClientError");
+
 const StatusService = require("./services/StatusService");
 const status = require("./api/status");
 
 const init = async () => {
+  const authService = new AuthService();
+  const salesService = new SalesService();
   const catatanService = new CatatanService();
   const statusService = new StatusService();
 
@@ -23,6 +34,20 @@ const init = async () => {
   });
 
   await server.register([
+    {
+      plugin: auth,
+      options: {
+        service: authService,
+        validator: AuthValidator,
+      },
+    },
+    {
+      plugin: sales,
+      options: {
+        service: salesService,
+        validator: SalesValidator,
+      },
+    },
     {
       plugin: catatan,
       options: {
@@ -67,7 +92,7 @@ const init = async () => {
   });
 
   await server.start();
-  console.log(`Server berjalan pada ${server.info.uri}`);
+  console.log(`Server running at: ${server.info.uri}`);
 };
 
 init();
