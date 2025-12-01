@@ -8,14 +8,12 @@ const { default: autoBind } = require("auto-bind");
 const { pool } = require("../utils/index");
 
 class AuthService {
-  // LOGIN
-
   constructor() {
     this.pool = pool;
-
     autoBind(this);
   }
 
+  
   async login({ email, password }) {
     const [rows] = await this.pool.query(
       `SELECT id_user, nama, email, password, peran, total_menghubungi
@@ -36,20 +34,33 @@ class AuthService {
       throw new AuthenticationError("Email atau kata sandi salah");
     }
 
-    const tokenPayload = {
+    const payload = {
       id_user: user.id_user,
       nama: user.nama,
       peran: user.peran,
     };
 
-    const token = jwt.sign(
-      tokenPayload,
+    const accessToken = jwt.sign(
+      payload,
       process.env.JWT_SECRET || "jwt_super_secret_key",
-      { expiresIn: "1d" }
+      { expiresIn: "15m" }
     );
 
+    const refreshToken = jwt.sign(
+      payload,
+      process.env.JWT_REFRESH_SECRET || "jwt_refresh_secret_key",
+      { expiresIn: "7d" }
+    );
+
+    
+    await this.createRefreshToken({
+      id_user: user.id_user,
+      token: refreshToken,
+    });
+
     return {
-      token,
+      accessToken,
+      refreshToken,
       user: {
         id_user: user.id_user,
         nama: user.nama,
@@ -60,7 +71,67 @@ class AuthService {
     };
   }
 
-  // FORGOT PASSWORD
+ 
+  async createRefreshToken({ id_user, token }) {
+    try {
+      await this.pool.query(
+        `INSERT INTO autentikasi (id_user, token) VALUES (?, ?)`,
+        [id_user, token]
+      );
+    } catch (error) {
+      throw new InvariantError("Gagal menyimpan refresh token");
+    }
+  }
+
+  
+  async verifyRefreshToken(token) {
+    const [rows] = await this.pool.query(
+      `SELECT id_user FROM autentikasi WHERE token = ? LIMIT 1`,
+      [token]
+    );
+
+    if (rows.length === 0) {
+      throw new AuthenticationError("Refresh token tidak valid");
+    }
+
+    return rows[0].id_user;
+  }
+
+ 
+  async deleteRefreshToken(token) {
+    await this.pool.query(`DELETE FROM autentikasi WHERE token = ?`, [token]);
+  }
+
+
+  async deleteAllRefreshTokenByUser(id_user) {
+    await this.pool.query(`DELETE FROM autentikasi WHERE id_user = ?`, [
+      id_user,
+    ]);
+  }
+
+ 
+
+  async verifyJwtRefresh(refreshToken) {
+    try {
+      return jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET || "jwt_refresh_secret_key"
+      );
+    } catch (err) {
+      throw new AuthenticationError("Refresh token kadaluwarsa atau tidak valid");
+    }
+  }
+
+ 
+  async generateAccessToken(payload) {
+    return jwt.sign(
+      payload,
+      process.env.JWT_SECRET || "jwt_super_secret_key",
+      { expiresIn: "15m" }
+    );
+  }
+
+  
 
   async forgotPassword({ email }) {
     const [rows] = await this.pool.query(
@@ -89,8 +160,6 @@ class AuthService {
       }/reset-password?token=${resetToken}`,
     };
   }
-
-  // RESET PASSWORD
 
   async resetPassword({ token, newPassword }) {
     try {
