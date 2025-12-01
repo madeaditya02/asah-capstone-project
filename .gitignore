@@ -1,0 +1,29 @@
+# ENV FILES
+.env
+*.env
+.env.local
+
+# NODE MODULES
+node_modules/
+
+# IGNORE BACKEND NODE_MODULES
+React Backend/backend/node_modules/
+
+# LOGS
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+
+# BUILD OUTPUT
+dist/
+build/
+.cache/
+
+# IDE FILES
+.vscode/
+.idea/
+
+# SYSTEM FILES
+.DS_Store
+Thumbs.db
