@@ -2,6 +2,9 @@ const {
   LoginPayloadSchema,
   ForgotPasswordPayloadSchema,
   ResetPasswordPayloadSchema,
+  RefreshTokenPayloadSchema,
+  LogoutPayloadSchema,
+  LogoutAllPayloadSchema,
 } = require("./schema");
 
 const InvariantError = require("../../exceptions/InvariantError");
@@ -23,6 +26,29 @@ const AuthValidator = {
 
   validateResetPasswordPayload: (payload) => {
     const { error } = ResetPasswordPayloadSchema.validate(payload);
+    if (error) {
+      throw new InvariantError(error.message);
+    }
+  },
+
+  validateRefreshPayload: (payload) => {
+    const { error } = RefreshTokenPayloadSchema.validate(payload);
+    if (error) {
+      throw new InvariantError(error.message);
+    }
+  },
+
+ 
+  validateLogoutPayload: (payload) => {
+    const { error } = LogoutPayloadSchema.validate(payload);
+    if (error) {
+      throw new InvariantError(error.message);
+    }
+  },
+
+
+  validateLogoutAllPayload: (payload) => {
+    const { error } = LogoutAllPayloadSchema.validate(payload);
     if (error) {
       throw new InvariantError(error.message);
     }
