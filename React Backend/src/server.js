@@ -7,10 +7,13 @@ const CatatanValidator = require("./validator/catatan");
 const ClientError = require("./exceptions/ClientError");
 const StatusService = require("./services/StatusService");
 const status = require("./api/status");
+const NasabahService = require("./services/NasabahService");
+const nasabah = require("./api/nasabah");
 
 const init = async () => {
   const catatanService = new CatatanService();
   const statusService = new StatusService();
+  const nasabahService = new NasabahService(); 
 
   const server = Hapi.server({
     port: process.env.PORT || 5000,
@@ -36,6 +39,13 @@ const init = async () => {
         service: statusService,
       },
     },
+     {
+      plugin: nasabah,
+      options: {
+        service: nasabahService,
+        // Validator tidak dimasukkan karena fitur Nasabah saat ini hanya GET (Read Only)
+      },
+    },
   ]);
 
   server.ext("onPreResponse", (request, h) => {
@@ -54,6 +64,14 @@ const init = async () => {
       if (!response.isServer) {
         return h.continue;
       }
+
+
+
+      console.log("---------------- DETEKSI ERROR ----------------");
+      console.error(response); // <--- INI AKAN MENAMPILKAN ERROR ASLINYA
+      console.log("-----------------------------------------------");
+
+
 
       const newResponse = h.response({
         status: "error",

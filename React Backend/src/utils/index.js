@@ -7,4 +7,4 @@ const pool = mysql.createPool({
   database: process.env.MYSQL_DB,
 });
 
-module.exports = { pool };
+module.exports = pool;
