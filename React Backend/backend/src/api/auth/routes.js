@@ -1,25 +1,21 @@
 const routes = (handler) => [
-  
   {
     method: "POST",
     path: "/auth/login",
     handler: handler.login,
     options: { auth: false },
   },
-
-
   {
     method: "POST",
     path: "/auth/refresh",
     handler: handler.refreshToken,
-    options: { auth: false }, 
+    options: { auth: false },
   },
-
   {
     method: "POST",
     path: "/auth/logout",
     handler: handler.logout,
-    options: { auth: false }, 
+    options: { auth: false },
   },
   {
     method: "POST",
