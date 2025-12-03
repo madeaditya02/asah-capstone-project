@@ -1,7 +1,0 @@
-CREATE TABLE IF NOT EXISTS autentikasi (
-  id_user VARCHAR(50) NOT NULL,
-  token TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (id_user, token(255))
-);
