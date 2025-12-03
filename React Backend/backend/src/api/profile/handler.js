@@ -1,4 +1,4 @@
-const autoBind = require("auto-bind");
+const { default: autoBind } = require("auto-bind");
 const { onlyAdmin, adminOrSelf } = require("../../utils/roleCheck");
 
 class ProfileHandler {
@@ -18,13 +18,13 @@ class ProfileHandler {
     return h.response({
       status: "success",
       data: result,
-    });
+    }).code(200);
   }
-
 
   async getAllProfiles(request, h) {
     const { credentials } = request.auth;
 
+    
     onlyAdmin(credentials);
 
     const result = await this.service.getAllProfiles();
@@ -32,9 +32,8 @@ class ProfileHandler {
     return h.response({
       status: "success",
       data: result,
-    });
+    }).code(200);
   }
-
 
   async updateProfile(request, h) {
     const { id } = request.params;
@@ -42,29 +41,29 @@ class ProfileHandler {
 
     adminOrSelf(credentials, id);
 
-    const result = await this.service.updateProfile(id, request.payload);
+    const updated = await this.service.updateProfile(id, request.payload);
 
     return h.response({
       status: "success",
       message: "Profil berhasil diperbarui",
-      data: result,
-    });
+      data: updated,
+    }).code(200);
   }
 
-  
   async deleteProfile(request, h) {
     const { id } = request.params;
     const { credentials } = request.auth;
 
+ 
     onlyAdmin(credentials);
 
-    const result = await this.service.deleteProfile(id);
+    const deleted = await this.service.deleteProfile(id);
 
     return h.response({
       status: "success",
       message: "Akun berhasil dihapus",
-      data: result,
-    });
+      data: deleted,
+    }).code(200);
   }
 }
 

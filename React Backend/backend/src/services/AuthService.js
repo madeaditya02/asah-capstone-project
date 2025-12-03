@@ -12,7 +12,7 @@ class AuthService {
     autoBind(this);
   }
 
-
+ 
   async login({ email, password }) {
     const [rows] = await this.pool.query(
       `SELECT id_user, nama, email, password, peran, total_menghubungi
@@ -38,14 +38,12 @@ class AuthService {
       { expiresIn: `${process.env.ACCESS_TOKEN_AGE}s` }
     );
 
-
     const refreshToken = jwt.sign(
       payload,
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: `${process.env.REFRESH_TOKEN_AGE}s` }
     );
 
-    // Simpan refresh token di DB
     await this.createRefreshToken({
       id_user: user.id_user,
       token: refreshToken,
@@ -64,7 +62,7 @@ class AuthService {
     };
   }
 
-  
+
   async createRefreshToken({ id_user, token }) {
     try {
       await this.pool.query(
@@ -76,7 +74,7 @@ class AuthService {
     }
   }
 
-  
+
   async verifyRefreshToken(token) {
     const [rows] = await this.pool.query(
       `SELECT id_user FROM autentikasi WHERE token = ? LIMIT 1`,
@@ -95,18 +93,15 @@ class AuthService {
     await this.pool.query(`DELETE FROM autentikasi WHERE token = ?`, [token]);
   }
 
- 
+
   async deleteAllRefreshTokenByUser(id_user) {
     await this.pool.query(`DELETE FROM autentikasi WHERE id_user = ?`, [id_user]);
   }
 
-  
+ 
   async verifyJwtRefresh(refreshToken) {
     try {
-      return jwt.verify(
-        refreshToken,
-        process.env.JWT_REFRESH_SECRET
-      );
+      return jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     } catch {
       throw new AuthenticationError(
         "Refresh token kadaluwarsa atau tidak valid"
@@ -123,7 +118,7 @@ class AuthService {
     );
   }
 
- 
+
   async forgotPassword({ email }) {
     const [rows] = await this.pool.query(
       `SELECT id_user, email FROM users WHERE email = ? LIMIT 1`,
@@ -132,7 +127,6 @@ class AuthService {
 
     const user = rows[0];
     if (!user) throw new InvariantError("Email tidak terdaftar");
-
 
     const resetToken = jwt.sign(
       { id_user: user.id_user, email: user.email },
@@ -146,7 +140,7 @@ class AuthService {
     };
   }
 
-  
+
   async resetPassword({ token, newPassword }) {
     try {
       const decoded = jwt.verify(token, process.env.RESET_SECRET);
@@ -163,8 +157,10 @@ class AuthService {
       }
 
       return { id_user: decoded.id_user };
-    } catch (error) {
-      throw new InvariantError("Token reset tidak valid atau sudah kedaluwarsa");
+    } catch {
+      throw new InvariantError(
+        "Token reset tidak valid atau sudah kedaluwarsa"
+      );
     }
   }
 }
