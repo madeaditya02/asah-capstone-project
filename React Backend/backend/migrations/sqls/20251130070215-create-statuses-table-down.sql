@@ -1,0 +1,1 @@
+DELETE FROM status WHERE id_status IN ('status-1-belum-dihubungi', 'status-2-tidak-diangkat', 'status-3-ragu', 'status-4-sukses', 'status-5-tidak-tertarik', 'status-6-nomor-salah', 'status-7-sedang-dihubungi');
