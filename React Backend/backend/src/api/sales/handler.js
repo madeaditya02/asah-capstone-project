@@ -1,111 +1,132 @@
+const autoBind = require("auto-bind");
+const ClientError = require("../../exceptions/ClientError");
+const AuthorizationError = require("../../exceptions/AuthorizationError");
 
-const SalesService = require('../../services/SalesService');
-const SalesValidator = require('../../validator/sales');
-const ClientError = require('../../exceptions/ClientError');
+class SalesHandler {
+  constructor(service, validator) {
+    this.service = service;
+    this.validator = validator;
+    autoBind(this);
+  }
 
-const SalesHandler = {
-  
-  getAllSales: async (request, h) => {
+  async getAllSales(request, h) {
     try {
-      const result = await SalesService.getAllSales();
+      const { peran } = request.auth.credentials;
+
+      if (peran !== "admin") {
+        throw new AuthorizationError("Hanya admin yang boleh melihat data sales");
+      }
+
+      const { search = "" } = request.query;
+      const sales = await this.service.getAllSales({ search });
+
       return h.response({
-        status: 'success',
-        data: result,
-      }).code(200);
+        status: "success",
+        data: sales,
+      });
     } catch (error) {
-      console.error(error);
-      return h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      }).code(500);
+      return this._handleError(h, error);
     }
-  },
+  }
 
-  createSales: async (request, h) => {
+  async getSalesById(request, h) {
     try {
-      SalesValidator.validateCreatePayload(request.payload);
+      const { peran } = request.auth.credentials;
 
-      const result = await SalesService.createSales(request.payload);
+      if (peran !== "admin") {
+        throw new AuthorizationError("Hanya admin yang boleh mengakses detail sales");
+      }
+
+      const { id } = request.params;
+      const sales = await this.service.getSalesById(id);
+
       return h.response({
-        status: 'success',
-        message: 'Sales berhasil dibuat',
-        data: result,
+        status: "success",
+        data: sales,
+      });
+    } catch (error) {
+      return this._handleError(h, error);
+    }
+  }
+
+  async createSales(request, h) {
+    try {
+      const { peran } = request.auth.credentials;
+
+      if (peran !== "admin") {
+        throw new AuthorizationError("Hanya admin yang boleh membuat data sales");
+      }
+
+      this.validator.validateCreatePayload(request.payload);
+
+      const id = await this.service.createSales(request.payload);
+
+      return h.response({
+        status: "success",
+        message: "Akun sales berhasil dibuat",
+        data: { id },
       }).code(201);
-
     } catch (error) {
-      if (error instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: error.message,
-        }).code(error.statusCode);
+      return this._handleError(h, error);
+    }
+  }
+
+  async updateSales(request, h) {
+    try {
+      const { peran } = request.auth.credentials;
+
+      if (peran !== "admin") {
+        throw new AuthorizationError("Hanya admin yang boleh mengubah data sales");
       }
 
-      console.error(error);
-      return h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      }).code(500);
-    }
-  },
-
-  updateSales: async (request, h) => {
-    try {
-      SalesValidator.validateUpdatePayload(request.payload);
+      this.validator.validateUpdatePayload(request.payload);
 
       const { id } = request.params;
+      await this.service.updateSales(id, request.payload);
 
-      const result = await SalesService.updateSales(id, request.payload);
-
-      return h.response({
-        status: 'success',
-        message: 'Data sales berhasil diperbarui',
-        data: result,
-      }).code(200);
-
+      return {
+        status: "success",
+        message: "Data sales berhasil diperbarui",
+      };
     } catch (error) {
-      if (error instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: error.message,
-        }).code(error.statusCode);
-      }
-
-      console.error(error);
-      return h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      }).code(500);
+      return this._handleError(h, error);
     }
-  },
+  }
 
-  deleteSales: async (request, h) => {
+  async deleteSales(request, h) {
     try {
-      const { id } = request.params;
+      const { peran } = request.auth.credentials;
 
-      const result = await SalesService.deleteSales(id);
-
-      return h.response({
-        status: 'success',
-        message: 'Data sales berhasil dihapus',
-        data: result,
-      }).code(200);
-
-    } catch (error) {
-      if (error instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: error.message,
-        }).code(error.statusCode);
+      if (peran !== "admin") {
+        throw new AuthorizationError("Hanya admin yang boleh menghapus sales");
       }
 
-      console.error(error);
-      return h.response({
-        status: 'error',
-        message: 'Terjadi kesalahan pada server',
-      }).code(500);
-    }
-  },
+      const { id } = request.params;
+      await this.service.deleteSales(id);
 
-};
+      return {
+        status: "success",
+        message: "Akun sales berhasil dihapus",
+      };
+    } catch (error) {
+      return this._handleError(h, error);
+    }
+  }
+
+  _handleError(h, error) {
+    if (error instanceof ClientError) {
+      return h.response({
+        status: "fail",
+        message: error.message,
+      }).code(error.statusCode);
+    }
+
+    console.error(error);
+    return h.response({
+      status: "error",
+      message: "Terjadi kegagalan pada server",
+    }).code(500);
+  }
+}
 
 module.exports = SalesHandler;

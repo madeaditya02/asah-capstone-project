@@ -1,37 +1,68 @@
 require("dotenv").config();
 const Hapi = require("@hapi/hapi");
+const Jwt = require("@hapi/jwt");
 const ClientError = require("./exceptions/ClientError");
+
 
 const auth = require("./api/auth");
 const AuthService = require("./services/AuthService");
 const AuthValidator = require("./validator/auth");
 
+
 const sales = require("./api/sales");
 const SalesService = require("./services/SalesService");
 const SalesValidator = require("./validator/sales");
+
 
 const CatatanService = require("./services/CatatanService");
 const catatan = require("./api/catatan");
 const CatatanValidator = require("./validator/catatan");
 
+
 const StatusService = require("./services/StatusService");
 const status = require("./api/status");
+
+
+const ProfileService = require("./services/ProfileService");
+const profilePlugin = require("./api/profile");
 
 const init = async () => {
   const authService = new AuthService();
   const salesService = new SalesService();
   const catatanService = new CatatanService();
   const statusService = new StatusService();
+  const profileService = new ProfileService();
 
   const server = Hapi.server({
     port: process.env.PORT || 5000,
-    host: process.env.HOST,
+    host: process.env.HOST || "localhost",
     routes: {
-      cors: {
-        origin: ["*"],
-      },
+      cors: { origin: ["*"] },
     },
   });
+
+  
+  await server.register([Jwt]);
+
+  // JWT
+ server.auth.strategy("jwt_strategy", "jwt", {
+  keys: process.env.JWT_SECRET,
+  verify: {
+    aud: false,
+    iss: false,
+    sub: false,
+    maxAgeSec: parseInt(process.env.ACCESS_TOKEN_AGE), 
+  },
+  validate: (decoded) => {
+    return {
+      isValid: true,
+      credentials: decoded, 
+    };
+  },
+});
+
+  server.auth.default("jwt_strategy");
+
 
   await server.register([
     {
@@ -61,7 +92,14 @@ const init = async () => {
         service: statusService,
       },
     },
+    {
+      plugin: profilePlugin,
+      options: {
+        service: profileService,
+      },
+    },
   ]);
+
 
   server.ext("onPreResponse", (request, h) => {
     const { response } = request;
@@ -76,13 +114,11 @@ const init = async () => {
         return newResponse;
       }
 
-      if (!response.isServer) {
-        return h.continue;
-      }
+      if (!response.isServer) return h.continue;
 
       const newResponse = h.response({
         status: "error",
-        message: `Terjadi kegagalan pada server kami: ${response.message}`,
+        message: "Terjadi kegagalan pada server",
       });
       newResponse.code(500);
       return newResponse;

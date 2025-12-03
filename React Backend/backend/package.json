@@ -17,6 +17,7 @@
   "type": "commonjs",
   "dependencies": {
     "@hapi/hapi": "^21.4.4",
+    "@hapi/jwt": "^3.2.1",
     "auto-bind": "^5.0.1",
     "bcrypt": "^5.1.1",
     "db-migrate": "^0.11.14",
