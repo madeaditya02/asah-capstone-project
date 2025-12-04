@@ -1,60 +1,82 @@
 const { default: autoBind } = require("auto-bind");
+const { onlyAdmin } = require("../../utils/roleCheck");
 
 class SalesHandler {
   constructor(service, validator) {
     this.service = service;
     this.validator = validator;
-
     autoBind(this);
   }
 
-  async getAllSales(h) {
-    const result = await this.service.getAllSales();
+  
+  async getAllSales(request, h) {
+    const { credentials } = request.auth;
+    onlyAdmin(credentials);
 
-    const response = h.response({
+    const { search = "" } = request.query;
+    const result = await this.service.getAllSales({ search });
+
+    return h.response({
       status: "success",
       data: result,
-    });
-    return response;
+    }).code(200);
+  }
+
+  
+  async getSalesById(request, h) {
+    const { credentials } = request.auth;
+    onlyAdmin(credentials);
+
+    const { id } = request.params;
+    const result = await this.service.getSalesById(id);
+
+    return h.response({
+      status: "success",
+      data: result,
+    }).code(200);
   }
 
   async createSales(request, h) {
-    this.validator.validateCreatePayload(request.payload);
-    const result = await this.service.createSales(request.payload);
+    const { credentials } = request.auth;
+    onlyAdmin(credentials);
 
-    const response = h.response({
+    this.validator.validateCreatePayload(request.payload);
+
+    const id = await this.service.createSales(request.payload);
+
+    return h.response({
       status: "success",
-      message: "Sales berhasil dibuat",
-      data: result,
-    });
-    response.code(201);
-    return response;
+      message: "Akun sales berhasil dibuat",
+      data: { id },
+    }).code(201);
   }
 
   async updateSales(request, h) {
+    const { credentials } = request.auth;
+    onlyAdmin(credentials);
+
     this.validator.validateUpdatePayload(request.payload);
+
     const { id } = request.params;
+    await this.service.updateSales(id, request.payload);
 
-    const result = await this.service.updateSales(id, request.payload);
-
-    const response = h.response({
+    return h.response({
       status: "success",
       message: "Data sales berhasil diperbarui",
-      data: result,
-    });
-    return response;
+    }).code(200);
   }
 
   async deleteSales(request, h) {
-    const { id } = request.params;
-    const result = await this.service.deleteSales(id);
+    const { credentials } = request.auth;
+    onlyAdmin(credentials);
 
-    const response = h.response({
+    const { id } = request.params;
+    await this.service.deleteSales(id);
+
+    return h.response({
       status: "success",
-      message: "Data sales berhasil dihapus",
-      data: result,
-    });
-    return response;
+      message: "Akun sales berhasil dihapus",
+    }).code(200);
   }
 }
 

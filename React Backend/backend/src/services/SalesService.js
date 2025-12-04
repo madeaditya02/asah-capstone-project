@@ -1,127 +1,98 @@
-const mysql = require("mysql2/promise");
-const bcrypt = require("bcrypt");
+const { pool } = require("../utils/index");
 const InvariantError = require("../exceptions/InvariantError");
 const NotFoundError = require("../exceptions/NotFoundError");
-const { pool } = require("../utils/index");
-const { default: autoBind } = require("auto-bind");
+const bcrypt = require("bcrypt"); 
 
 class SalesService {
-  // GET ALL SALES
-  constructor() {
-    this.pool = pool;
 
-    autoBind(this);
-  }
+  async getAllSales({ search }) {
+    const keyword = `%${search}%`;
 
-  async getAllSales() {
-
-    const [rows] = await this.pool.query(
-      `SELECT 
-          id_user, 
-          nama, 
-          email, 
-          peran, 
-          total_menghubungi,
-          dibuat_pada 
+    const [rows] = await pool.query(
+      `SELECT id_user, nama, email 
        FROM users 
-       WHERE peran = 'sales'`
+       WHERE peran = 'sales'
+         AND (nama LIKE ? OR email LIKE ?)
+       ORDER BY nama ASC`,
+      [keyword, keyword]
     );
 
     return rows;
   }
 
-  // CREATE SALES
-
-  async createSales(payload) {
-    const { nama, email, password } = payload;
-
-    const [existing] = await this.pool.query(
-      "SELECT email FROM users WHERE email = ? LIMIT 1",
-      [email]
+  async getSalesById(id) {
+    const [rows] = await pool.query(
+      `SELECT id_user, nama, email 
+       FROM users 
+       WHERE id_user = ? AND peran = 'sales'
+       LIMIT 1`,
+      [id]
     );
 
-    if (existing.length > 0) {
-      throw new InvariantError("Email sudah digunakan");
+    if (rows.length === 0) {
+      throw new NotFoundError("Sales tidak ditemukan");
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const [result] = await this.pool.query(
-      `INSERT INTO users 
-        (nama, email, password, peran, total_menghubungi) 
-       VALUES (?, ?, ?, 'sales', 0)`,
-      [nama, email, hashedPassword]
-    );
-
-    return { id_user: result.insertId };
+    return rows[0];
   }
 
-  // UPDATE SALES
+  async createSales({ nama, email, password }) {
+    const hashedPassword = await bcrypt.hash(password, 10); 
 
-  async updateSales(id_user, payload) {
+    try {
+      const [result] = await pool.query(
+        `INSERT INTO users (nama, email, password, peran, total_menghubungi)
+         VALUES (?, ?, ?, 'sales', 0)`,
+        [nama, email, hashedPassword]
+      );
 
-    const [existing] = await this.pool.query(
-      "SELECT id_user FROM users WHERE id_user = ? AND peran = 'sales'",
-      [id_user]
+      return result.insertId;
+
+    } catch (err) {
+      if (err.code === "ER_DUP_ENTRY") {
+        throw new InvariantError("Email sudah digunakan");
+      }
+      throw err;
+    }
+  }
+
+  async updateSales(id, { nama, email }) {
+    const [existing] = await pool.query(
+      `SELECT id_user FROM users WHERE id_user = ? AND peran = 'sales'`,
+      [id]
     );
 
     if (existing.length === 0) {
       throw new NotFoundError("Sales tidak ditemukan");
     }
 
-    const { nama, email, password, total_menghubungi } = payload;
-
-    const fields = [];
-    const values = [];
-
-    if (nama) {
-      fields.push("nama = ?");
-      values.push(nama);
-    }
-
-    if (email) {
-      fields.push("email = ?");
-      values.push(email);
-    }
-
-    if (password) {
-      const hashed = await bcrypt.hash(password, 10);
-      fields.push("password = ?");
-      values.push(hashed);
-    }
-
-    if (total_menghubungi !== undefined) {
-      fields.push("total_menghubungi = ?");
-      values.push(total_menghubungi);
-    }
-
-    values.push(id_user);
-
-    await this.pool.query(
-      `UPDATE users SET ${fields.join(", ")} WHERE id_user = ?`,
-      values
+    await pool.query(
+      `UPDATE users 
+       SET nama = ?, email = ?
+       WHERE id_user = ? AND peran = 'sales'`,
+      [nama, email, id]
     );
 
-    return { id_user };
+    return { id };
   }
 
-  // DELETE SALES
-
-  async deleteSales(id_user) {
-
-    const [existing] = await this.pool.query(
-      "SELECT id_user FROM users WHERE id_user = ? AND peran = 'sales'",
-      [id_user]
+  async deleteSales(id) {
+    const [existing] = await pool.query(
+      `SELECT id_user FROM users WHERE id_user = ? AND peran = 'sales'`,
+      [id]
     );
 
     if (existing.length === 0) {
       throw new NotFoundError("Sales tidak ditemukan");
     }
 
-    await this.pool.query("DELETE FROM users WHERE id_user = ?", [id_user]);
+    await pool.query(
+      `DELETE FROM users WHERE id_user = ? AND peran = 'sales'`,
+      [id]
+    );
 
-    return { id_user };
+    return { id };
   }
-};
+}
 
 module.exports = SalesService;

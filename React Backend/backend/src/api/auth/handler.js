@@ -4,12 +4,12 @@ class AuthHandler {
   constructor(service, validator) {
     this.service = service;
     this.validator = validator;
-
     autoBind(this);
   }
 
   async login(request, h) {
     this.validator.validateLoginPayload(request.payload);
+
     const result = await this.service.login(request.payload);
 
     const response = h.response({
@@ -27,6 +27,7 @@ class AuthHandler {
     const { refreshToken } = request.payload;
 
     await this.service.verifyRefreshToken(refreshToken);
+
     const decoded = await this.service.verifyJwtRefresh(refreshToken);
 
     const newAccessToken = await this.service.generateAccessToken({
@@ -73,6 +74,7 @@ class AuthHandler {
 
   async forgotPassword(request, h) {
     this.validator.validateForgotPasswordPayload(request.payload);
+
     const result = await this.service.forgotPassword(request.payload);
 
     const response = h.response({
@@ -85,6 +87,7 @@ class AuthHandler {
 
   async resetPassword(request, h) {
     this.validator.validateResetPasswordPayload(request.payload);
+
     const result = await this.service.resetPassword(request.payload);
 
      const response = h.response({

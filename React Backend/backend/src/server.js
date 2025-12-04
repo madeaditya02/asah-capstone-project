@@ -1,70 +1,92 @@
 require("dotenv").config();
 const Hapi = require("@hapi/hapi");
+const Jwt = require("@hapi/jwt");
 const ClientError = require("./exceptions/ClientError");
+
 
 const auth = require("./api/auth");
 const AuthService = require("./services/AuthService");
 const AuthValidator = require("./validator/auth");
 
+
 const sales = require("./api/sales");
 const SalesService = require("./services/SalesService");
 const SalesValidator = require("./validator/sales");
+
 
 const CatatanService = require("./services/CatatanService");
 const catatan = require("./api/catatan");
 const CatatanValidator = require("./validator/catatan");
 
+
 const StatusService = require("./services/StatusService");
 const status = require("./api/status");
+
 const NasabahService = require("./services/NasabahService");
 const nasabah = require("./api/nasabah");
 
+const ProfileService = require("./services/ProfileService");
+const profilePlugin = require("./api/profile");
+
 const init = async () => {
+
+  const server = Hapi.server({
+    port: process.env.PORT || 5000,
+    host: process.env.HOST || "localhost",
+    routes: {
+      cors: { origin: ["*"] },
+    },
+  });
+
+  
+  await server.register(Jwt);
+
+  server.auth.strategy("jwt_strategy", "jwt", {
+    keys: process.env.JWT_SECRET,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: parseInt(process.env.ACCESS_TOKEN_AGE),
+    },
+    validate: (decoded) => ({
+      isValid: true,
+      credentials: decoded,
+    }),
+  });
+
+  server.auth.default("jwt_strategy");
+
+
   const authService = new AuthService();
   const salesService = new SalesService();
   const catatanService = new CatatanService();
   const statusService = new StatusService();
   const nasabahService = new NasabahService(); 
-
-  const server = Hapi.server({
-    port: process.env.PORT || 5000,
-    host: process.env.HOST,
-    routes: {
-      cors: {
-        origin: ["*"],
-      },
-    },
-  });
-
+  const profileService = new ProfileService();
+ 
   await server.register([
     {
       plugin: auth,
-      options: {
-        service: authService,
-        validator: AuthValidator,
-      },
+      options: { service: authService, validator: AuthValidator },
     },
     {
       plugin: sales,
-      options: {
-        service: salesService,
-        validator: SalesValidator,
-      },
+      options: { service: salesService, validator: SalesValidator },
     },
     {
       plugin: catatan,
-      options: {
-        service: catatanService,
-        validator: CatatanValidator,
-      },
+      options: { service: catatanService, validator: CatatanValidator },
     },
     {
       plugin: status,
-      options: {
-        service: statusService,
-      },
+      options: { service: statusService },
     },
-     {
+    {
+      plugin: profilePlugin,
+      options: { service: profileService },
+    },
+    {
       plugin: nasabah,
       options: {
         service: nasabahService,
@@ -73,37 +95,37 @@ const init = async () => {
     },
   ]);
 
+  
   server.ext("onPreResponse", (request, h) => {
     const { response } = request;
 
     if (response instanceof Error) {
+    
       if (response instanceof ClientError) {
-        const newResponse = h.response({
-          status: "fail",
-          message: response.message,
-        });
-        newResponse.code(response.statusCode);
-        return newResponse;
+        return h
+          .response({
+            status: "fail",
+            message: response.message,
+          })
+          .code(response.statusCode);
       }
 
+    
       if (!response.isServer) {
         return h.continue;
       }
 
-
-
       console.log("---------------- DETEKSI ERROR ----------------");
       console.error(response); // <--- INI AKAN MENAMPILKAN ERROR ASLINYA
       console.log("-----------------------------------------------");
-
-
-
-      const newResponse = h.response({
-        status: "error",
-        message: `Terjadi kegagalan pada server kami: ${response.message}`,
-      });
-      newResponse.code(500);
-      return newResponse;
+    
+      console.error("SERVER ERROR:", response);
+      return h
+        .response({
+          status: "error",
+          message: "Terjadi kegagalan pada server",
+        })
+        .code(500);
     }
 
     return h.continue;
