@@ -1,27 +1,27 @@
 const routes = (handler) => [
   {
     method: "POST",
-    path: "/catatan",
+    path: "nasabah/{nasabahId}/catatan",
     handler: handler.postCatatanHandler,
   },
   {
     method: "PUT",
-    path: "/catatan/{id}",
+    path: "nasabah/{nasabahId}/catatan/{catatanId}",
     handler: handler.putCatatanByIdHandler,
   },
   {
     method: "GET",
-    path: "/catatan",
+    path: "nasabah/{nasabahId}/catatan",
     handler: handler.getAllCatatanHandler,
   },
   {
     method: "GET",
-    path: "/catatan/{id}",
+    path: "nasabah/{nasabahId}/catatan/{catatanId}",
     handler: handler.getCatatanByIdHandler,
   },
   {
     method: "DELETE",
-    path: "/catatan/{id}",
+    path: "nasabah/{nasabahId}/catatan/{catatanId}",
     handler: handler.deleteCatatanByIdHandler,
   },
 ];

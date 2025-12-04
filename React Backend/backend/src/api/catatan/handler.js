@@ -9,13 +9,19 @@ class CatatanHandler {
   }
 
   async postCatatanHandler(request, h) {
-    this.validator.validatePostCatatanPayload(request.payload);
+    const { nasabahId } = request.params;
+    const { id_user: userId } = request.auth.credentials;
+
+    this.validator.validatePostCatatanPayload(request.payload, nasabahId, userId);
+
     const { deskripsi, waktuDihubungi, durasi, statusId } = request.payload;
 
     const catatanId = await this.service.addCatatan({
       deskripsi,
       waktuDihubungi,
       durasi,
+      nasabahId,
+      userId,
       statusId,
     });
 
@@ -31,10 +37,11 @@ class CatatanHandler {
   }
 
   async putCatatanByIdHandler(request) {
-    const { id } = request.params;
+    const { catatanId } = request.params;
+    const { id_user: userId } = request.auth.credentials;
 
     this.validator.validateUpdateCatatanPayload(request.payload);
-    await this.service.updateCatatanById(id, request.payload);
+    await this.service.updateCatatanById(catatanId, userId, request.payload);
 
     return {
       status: "success",
@@ -43,8 +50,8 @@ class CatatanHandler {
   }
 
   async getCatatanByIdHandler(request) {
-    const { id } = request.params;
-    const catatan = await this.service.getCatatanById(id);
+    const { catatanId } = request.params;
+    const catatan = await this.service.getCatatanById(catatanId);
     return {
       status: "success",
       data: {
@@ -65,8 +72,8 @@ class CatatanHandler {
   }
 
   async deleteCatatanByIdHandler(request) {
-    const { id } = request.params;
-    await this.service.deleteCatatanById(id);
+    const { catatanId } = request.params;
+    await this.service.deleteCatatanById(catatanId, userId);
 
     return {
       status: "success",

@@ -3,6 +3,7 @@ const NotFoundError = require("../exceptions/NotFoundError");
 const InvariantError = require("../exceptions/InvariantError");
 const { default: autoBind } = require("auto-bind");
 const { pool } = require("../utils/index");
+const AuthorizationError = require("../exceptions/AuthorizationError");
 
 class CatatanService {
   constructor() {
@@ -11,12 +12,12 @@ class CatatanService {
     autoBind(this);
   }
 
-  async addCatatan({ deskripsi, waktuDihubungi, durasi, statusId }) {
-    const id = nanoid(16);
+  async addCatatan({ deskripsi, waktuDihubungi, durasi, statusId, nasabahId, userId }) {
+    const catatanId = nanoid(16);
 
     const query =
-      "INSERT INTO catatan (id_catatan, deskripsi_catatan, waktu_dihubungi, durasi, id_status) VALUES (?, ?, ?, ?, ?)";
-    const values = [id, deskripsi, waktuDihubungi, durasi, statusId];
+      "INSERT INTO catatan (id_catatan, deskripsi_catatan, waktu_dihubungi, durasi, id_nasabah, id_user, id_status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const values = [catatanId, deskripsi, waktuDihubungi, durasi,nasabahId, userId, statusId];
 
     const [result] = await this.pool.query(query, values);
 
@@ -24,13 +25,30 @@ class CatatanService {
       throw new InvariantError("Catatan gagal ditambahkan");
     }
 
-    return id;
+    return catatanId;
   }
 
-  async updateCatatanById(id, { deskripsi, durasi, statusId }) {
+  async verifyOwnerCatatan(userId, catatanId) {
+    const query = "SELECT * FROM catatan WHERE id_catatan = ?";
+    const values = [catatanId];
+
+    const [result] = await this.pool.query(query, values);
+
+    if (result.affectedRows !== 1) {
+      throw new NotFoundError('Catatan tidak ditemukan');
+    }
+
+    if(result[0].id_user !== userId) {
+      throw new AuthorizationError('Anda tidak berhak memodifikasi catatan ini');
+    }
+  }
+
+  async updateCatatanById(catatanId, userId, { deskripsi, durasi, statusId }) {
+    await this.verifyOwnerCatatan(userId, catatanId);
+
     const query =
       "UPDATE catatan SET deskripsi_catatan = ?, durasi = ?, id_status = ? WHERE id_catatan =?";
-    const values = [deskripsi, durasi, statusId, id];
+    const values = [deskripsi, durasi, statusId, catatanId];
 
     const [result] = await this.pool.query(query, values);
 
@@ -38,7 +56,7 @@ class CatatanService {
       throw new NotFoundError("Catatan gagal diperbarui. Id tidak ditemukan");
     }
 
-    return id;
+    return catatanId;
   }
 
   async getAllCatatan() {
@@ -48,10 +66,10 @@ class CatatanService {
     return results;
   }
 
-  async getCatatanById(id) {
+  async getCatatanById(catatanId) {
     const query =
       "SELECT * FROM catatan JOIN status ON catatan.id_status = status.id_status WHERE catatan.id_catatan = ?";
-    const values = [id];
+    const values = [catatanId];
 
     const [results] = await this.pool.query(query, values);
 
@@ -62,9 +80,11 @@ class CatatanService {
     return results[0];
   }
 
-  async deleteCatatanById(id) {
+  async deleteCatatanById(catatanId, userId) {
+    await this.verifyOwnerCatatan(userId, catatanId);
+
     const query = "DELETE FROM catatan WHERE id_catatan = ?";
-    const values = [id];
+    const values = [catatanId];
 
     const [results] = await this.pool.query(query, values);
 

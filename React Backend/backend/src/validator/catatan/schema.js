@@ -11,6 +11,9 @@ const PostCatatanPayloadSchema = Joi.object({
     "string.empty": "Status wajib diisi",
     "any.required": "Status tidak boleh kosong",
   }),
+  nasabahId: Joi.string().required().messages({
+    "any.required": "Id nasabah tidak boleh kosong",
+  }),
 });
 
 const UpdateCatatanPayloadSchema = Joi.object({
@@ -23,10 +26,22 @@ const UpdateCatatanPayloadSchema = Joi.object({
     "string.empty": "Status wajib diisi",
     "any.required": "Status tidak boleh kosong",
   }),
+  nasabahId: Joi.string().required().messages({
+    "any.required": "Id nasabah tidak boleh kosong",
+  }),
+  catatanId: Joi.string().required().messages({
+    "any.required": "Id catatan tidak boleh kosong",
+  }),
 });
 
-const GetDeleteCatatanByIdPayloadSchema = Joi.object({
+const DeleteCatatanByIdPayloadSchema = Joi.object({
   catatanId: Joi.string().required(),
+  nasabahId: Joi.string().required().messages({
+    "any.required": "Id nasabah tidak boleh kosong",
+  }),
+  catatanId: Joi.string().required().messages({
+    "any.required": "Id catatan tidak boleh kosong",
+  }),
 });
 
 module.exports = {
