@@ -1,33 +1,28 @@
 require("dotenv").config();
+
 const Hapi = require("@hapi/hapi");
 const Jwt = require("@hapi/jwt");
 const ClientError = require("./exceptions/ClientError");
-
 
 const auth = require("./api/auth");
 const AuthService = require("./services/AuthService");
 const AuthValidator = require("./validator/auth");
 
-
 const sales = require("./api/sales");
 const SalesService = require("./services/SalesService");
 const SalesValidator = require("./validator/sales");
-
 
 const CatatanService = require("./services/CatatanService");
 const catatan = require("./api/catatan");
 const CatatanValidator = require("./validator/catatan");
 
-
 const StatusService = require("./services/StatusService");
 const status = require("./api/status");
-
 
 const ProfileService = require("./services/ProfileService");
 const profilePlugin = require("./api/profile");
 
 const init = async () => {
-
   const server = Hapi.server({
     port: process.env.PORT || 5000,
     host: process.env.HOST || "localhost",
@@ -36,9 +31,10 @@ const init = async () => {
     },
   });
 
-  
+  // Registrasi Plugin JWT
   await server.register(Jwt);
 
+  // --- BAGIAN INI YANG DIPERBAIKI ---
   server.auth.strategy("jwt_strategy", "jwt", {
     keys: process.env.JWT_SECRET,
     verify: {
@@ -47,14 +43,14 @@ const init = async () => {
       sub: false,
       maxAgeSec: parseInt(process.env.ACCESS_TOKEN_AGE),
     },
-    validate: (decoded) => ({
+    validate: (artifacts) => ({
       isValid: true,
-      credentials: decoded,
+      credentials: artifacts.decoded.payload,
     }),
   });
+ 
 
   server.auth.default("jwt_strategy");
-
 
   const authService = new AuthService();
   const salesService = new SalesService();
@@ -62,7 +58,6 @@ const init = async () => {
   const statusService = new StatusService();
   const profileService = new ProfileService();
 
- 
   await server.register([
     {
       plugin: auth,
@@ -86,12 +81,10 @@ const init = async () => {
     },
   ]);
 
-  
   server.ext("onPreResponse", (request, h) => {
     const { response } = request;
 
     if (response instanceof Error) {
-    
       if (response instanceof ClientError) {
         return h
           .response({
@@ -101,12 +94,10 @@ const init = async () => {
           .code(response.statusCode);
       }
 
-    
       if (!response.isServer) {
         return h.continue;
       }
 
-    
       console.error("SERVER ERROR:", response);
       return h
         .response({
