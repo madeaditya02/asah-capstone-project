@@ -4,6 +4,7 @@ const routes = (handler) => [
     method: 'GET',
     path: '/sales',
     handler: handler.getAllSales,
+    
   },
 
   {
