@@ -7,7 +7,7 @@ const api = axios.create({
   },
 });
 
-// 1. REQUEST INTERCEPTOR (Kirim Token)
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -21,20 +21,18 @@ api.interceptors.request.use(
   }
 );
 
-// 2. RESPONSE INTERCEPTOR (Cek Token Basi) --- TAMBAHKAN INI
+
 api.interceptors.response.use(
   (response) => {
-    return response; // Kalau sukses, loloskan saja
+    return response; 
   },
   (error) => {
-    // Kalau errornya 401 (Unauthorized)
     if (error.response && error.response.status === 401) {
       console.log("Token kadaluwarsa, logout otomatis...");
       
-      // Hapus data lama
+  
       localStorage.clear();
       
-      // Paksa pindah ke halaman login
       window.location.href = "/login";
     }
     
