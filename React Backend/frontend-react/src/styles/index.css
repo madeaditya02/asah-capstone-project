@@ -1,1 +1,134 @@
 @import "tailwindcss";
+
+html, body, #root {
+    height: 100%;
+    width: 100%;
+}
+
+* {
+    font-family: Arial, Helvetica, sans-serif;
+    box-sizing: border-box;
+}
+
+/* Text Color */
+
+.text-primary-500 {
+    color: #0052CC;
+}
+
+.text-primary-500-to-primary-700-hover:hover {
+    color: #00317A;
+    cursor: pointer;
+}
+
+.text-primary-700 {
+    color: #00317A;
+}
+
+.text-warning {
+    color: #C65E02;
+}
+
+.text-success {
+    color: #1F8B4D;
+}
+
+.text-error {
+    color: #EB5757;
+}
+
+.text-black-status {
+    color: #4F4F4F;
+}
+
+.text-grey-click-to-primary-500:active {
+    color: #0052CC;
+}
+
+/* Background Color */
+
+.bg-main {
+    background-color: #FAFCFF;
+}
+
+.bg-white-to-primary-500-hover:hover {
+    background-color: #0052CC;
+    color: white;
+    cursor: pointer;
+}
+
+.bg-white-to-error-hover:hover {
+    background-color: #EB5757;
+    color: white;
+    cursor: pointer;
+}
+
+.bg-primary-500 {
+    background-color: #0052CC;
+}
+
+.bg-primary-500-to-primary-700-hover:hover {
+    background-color: #00317A;
+}
+
+.bg-primary-700-transparant {
+    background-color: #DCE8FA;
+}
+
+.bg-primary-500-transparant {
+    background-color: #DCE8FA;
+}
+
+.bg-warning-transparant {
+    background-color: #FFF2E6;
+}
+
+.bg-success-transparant {
+    background-color: #EAF7F0;
+}
+
+.bg-error {
+    background-color: #EB5757;
+}
+
+.bg-error-hover:hover {
+    background-color: #BC4646;
+}
+
+.bg-error-transparant {
+    background-color: #FDEFEF;
+}
+
+.bg-black-status-transparant {
+    background-color: #EEEEEE;
+}
+
+.bg-primary-10 {
+    background-color: #F5F9FF;
+}
+
+/* Border Color */
+
+.border-primary-700 {
+    border-color: #00317A;
+}
+
+.border-primary-500 {
+    border-color: #0052CC;
+}
+
+.border-warning{
+    border-color: #F77503;
+}
+
+.border-success {
+    border-color: #27AE60;
+}
+
+.border-error {
+    border-color: #EB5757;
+}
+
+.border-black-status {
+    border-color: #4F4F4F;
+}
