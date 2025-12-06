@@ -31,10 +31,9 @@ const init = async () => {
     },
   });
 
-  // Registrasi Plugin JWT
   await server.register(Jwt);
 
-  // --- BAGIAN INI YANG DIPERBAIKI ---
+  
   server.auth.strategy("jwt_strategy", "jwt", {
     keys: process.env.JWT_SECRET,
     verify: {
